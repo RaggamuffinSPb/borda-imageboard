@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  # Сервис 1: База данных PostgreSQL
+  borda-db:
+    image: postgres:15-alpine
+    container_name: borda_postgres
+    # environment: передаем переменные окружения (пароли и настройки)
+    environment:
+      POSTGRES_DB: borda_db      # Имя базы данных, которая создастся
+      POSTGRES_USER: borda_user  # Логин
+      POSTGRES_PASSWORD: secret # Пароль (для учебы пойдет простой)
+    ports:
+      - "5432:5432"               # Пробрасываем порт: localhost:5432 будет вести в контейнер
+    volumes:
+      - borda_data:/var/lib/postgresql/data # Сохраняем данные, чтобы не пропали при перезапуске
+
+  # Сервис 2: Redis (для кэша)
+  borda-redis:
+    image: redis:7-alpine
+    container_name: borda_redis
+    ports:
+      - "6379:6379"              # Порт Redis
+    command: redis-server --appendonly yes # Включаем сохранение данных на диск
+
+# Описание томов (volume) для хранения данных
+volumes:
+  borda_data:
