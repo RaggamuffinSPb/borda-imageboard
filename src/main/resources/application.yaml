@@ -11,3 +11,7 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+  servlet:
+    multipart:
+      max-file-size: 10MB     # Максимальный размер одного файла
+      max-request-size: 10MB  # Максимальный размер всего запроса

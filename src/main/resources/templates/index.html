@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Моя Борда</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f0f0f0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .post { border-bottom: 1px solid #eee; margin-bottom: 20px; padding-bottom: 20px; }
+        .post img { max-width: 100%; height: auto; border-radius: 4px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], textarea { width: 100%; padding: 8px; box-sizing: border-box; }
+        button { padding: 10px 20px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        .reply { margin-left: 40px; border-left: 2px solid #ccc; padding-left: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Лента имиджборды</h1>
+
+    <!-- Форма для загрузки -->
+    <!-- th:action говорит отправить данные на этот же URL, но методом POST -->
+    <form action="#" th:action="@{/}" method="post" enctype="multipart/form-data">
+        <div class="form-group">
+            <label>Выбери картинку (необязательно):</label>
+            <!-- УБРАЛ required! -->
+            <input type="file" name="file">
+        </div>
+        <div class="form-group">
+            <label>Текст сообщения:</label>
+            <textarea name="content" rows="3" required></textarea>
+        </div>
+        <!-- Скрытые поля для будущей логики, пока они пустые -->
+        <input type="hidden" name="threadId" value="">
+        <input type="hidden" name="replyTo" value="">
+
+        <button type="submit">Создать тред</button>
+    </form>
+
+    <hr>
+
+    <!-- Лента постов -->
+    <!-- th:each пробегается по списку posts, который мы передадим из Java -->
+    <div th:each="post : ${posts}">
+        <a th:href="@{'/thread/' + ${post.id}}" style="text-decoration: none; color: black;">
+            <div class="post">
+                <!-- Картинка ОП-поста -->
+                <img th:if="${post.imageName != null}" th:src="@{'/api/posts/image/' + ${post.imageName}}" alt="Image">
+
+                <!-- Текст ОП-поста -->
+                <p th:text="${post.content}">Текст поста</p>
+
+                <!-- Дата -->
+                <small class="date" th:text="${#temporals.format(post.timestamp, 'dd.MM.yyyy HH:mm:ss')}">Время</small>
+
+                <!-- СЧЕТЧИК ОТВЕТОВ -->
+                <!-- Мы берем значение из мапы 'stats' по ключу 'post' -->
+                <div style="margin-top: 10px; font-weight: bold; color: #555;">
+                    Ответов: <span th:text="${stats.get(post)}">0</span>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+</body>
+</html>

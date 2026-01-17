@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Тред</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f0f0f0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .post { border-bottom: 1px solid #eee; margin-bottom: 20px; padding-bottom: 20px; }
+        .op-post { border: 2px solid #007bff; padding: 20px; margin-bottom: 30px; background-color: #f9faff; }
+        .reply { margin-left: 20px; border-left: 2px solid #ccc; padding-left: 10px; margin-top: 10px; }
+        .post img { max-width: 100%; height: auto; border-radius: 4px; }
+        .form-group { margin-bottom: 15px; }
+        input[type="text"], textarea { width: 100%; padding: 8px; box-sizing: border-box; }
+        button { padding: 10px 20px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            text-decoration: none;
+            color: #333;
+            background-color: #e0e0e0;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .back-link:hover {
+            background-color: #d0d0d0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="/" class="back-link">← На главную</a>
+
+    <!-- ОП-ПОСТ (Начало треда) -->
+    <div class="post op-post">
+        <img th:if="${op.imageName != null}" th:src="@{'/api/posts/image/' + ${op.imageName}}" alt="Image">
+        <p th:text="${op.content}">Текст ОП</p>
+        <small th:text="${#temporals.format(op.timestamp, 'dd.MM.yyyy HH:mm:ss')}">Время</small>
+    </div>
+
+    <hr>
+
+    <!-- СПИСОК ОТВЕТОВ -->
+    <div th:each="reply : ${replies}">
+        <div class="post reply">
+            <img th:if="${reply.imageName != null}" th:src="@{'/api/posts/image/' + ${reply.imageName}}" alt="Image">
+            <p th:text="${reply.content}">Текст ответа</p>
+            <small th:text="${#temporals.format(reply.timestamp, 'dd.MM.yyyy HH:mm:ss')}">Время</small>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- ФОРМА ОТВЕТА В ТРЕД -->
+    <!-- Важно: threadId передаем скрытым полем -->
+    <form action="#" th:action="@{/}" method="post" enctype="multipart/form-data">
+        <div class="form-group">
+            <label>Ответ:</label>
+            <textarea name="content" rows="3" required></textarea>
+        </div>
+        <input type="hidden" name="threadId" th:value="${op.id}">
+        <div class="form-group">
+            <label>Картинка (опционально):</label>
+            <input type="file" name="file">
+        </div>
+        <button type="submit">Ответить</button>
+    </form>
+
+</div>
+
+</body>
+</html>
