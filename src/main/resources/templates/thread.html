@@ -165,14 +165,19 @@
 
     <!-- СПИСОК ОТВЕТОВ -->
     <div th:each="reply : ${replies}">
-        <div class="post reply" th:id="'post-' + ${reply.id}">
+        <div class="post reply" th:id="'post-' + ${reply.id}"
+             th:data-content="${reply.content}"
+             th:data-image="${reply.imageName != null ? '/api/posts/image/' + reply.imageName : ''}">
 
             <!-- ШАПКА ПОСТА -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                 <div>
                     <!-- Ссылка ответа -->
                     <div th:if="${reply.replyTo != null}" style="display: inline-block; margin-right: 15px;">
-                        <a th:href="'#post-' + ${reply.replyTo}" class="matrix-glow">
+                        <!-- Вызываем showTooltip при наведении, передаем ID -->
+                        <a th:href="'#post-' + ${reply.replyTo}" class="matrix-glow"
+                           th:onmouseenter="'showTooltip(event, ' + ${reply.replyTo} + ')'"
+                           onmouseleave="hideTooltip()">
                             &gt;&gt; <span th:text="${reply.replyTo}">ID</span>
                         </a>
                     </div>
@@ -209,12 +214,15 @@
     </form>
 
 </div>
+<!-- Контейнер для всплывающей подсказки (сначала скрыт) -->
+<div id="post-tooltip" style="display: none; position: fixed; z-index: 1000; background: #000; border: 1px solid #0f0; padding: 10px; color: #0f0; max-width: 300px; pointer-events: none; box-shadow: 0 0 10px #0f0;">
+    <div id="tooltip-content"></div>
+    <img id="tooltip-image" src="" style="max-width: 100%; display: none; margin-top: 5px; filter: sepia(100%) hue-rotate(50deg);">
+</div>
 <script>
+    // --- ЛОГИКА ОТВЕТА (Было раньше) ---
     function setReply(postId) {
-        // 1. Находим скрытое поле replyTo в форме
         const replyToInput = document.querySelector('input[name="replyTo"]');
-
-        // 2. Если поля нет - создаем его (для надежности)
         if (!replyToInput) {
             const form = document.querySelector('form');
             const input = document.createElement('input');
@@ -222,15 +230,60 @@
             input.name = 'replyTo';
             form.appendChild(input);
         }
-
-        // 3. Устанавливаем значение ID
         document.querySelector('input[name="replyTo"]').value = postId;
-
-        // 4. Скроллим к форме
         document.querySelector('#reply-form').scrollIntoView({behavior: 'smooth'});
-
-        // 5. (Опционально) Фокус на поле текста
         document.querySelector('textarea[name="content"]').focus();
+    }
+
+    // --- НОВАЯ ЛОГИКА ТУЛТИПА ---
+    const tooltip = document.getElementById('post-tooltip');
+    const tooltipContent = document.getElementById('tooltip-content');
+    const tooltipImage = document.getElementById('tooltip-image');
+
+    // Функция показа
+    function showTooltip(e, postId) {
+        // 1. Ищем элемент поста на странице по его ID
+        const targetPost = document.getElementById('post-' + postId);
+
+        if (targetPost) {
+            // 2. Достаем данные из атрибутов data-*
+            const content = targetPost.getAttribute('data-content');
+            const imgSrc = targetPost.getAttribute('data-image');
+
+            // 3. Заполняем тултип
+            // Обрезаем слишком длинный текст, если нужно
+            tooltipContent.textContent = content ? (content.length > 100 ? content.substring(0, 100) + '...' : content) : '';
+
+            if (imgSrc) {
+                tooltipImage.src = imgSrc;
+                tooltipImage.style.display = 'block';
+            } else {
+                tooltipImage.style.display = 'none';
+            }
+
+            // 4. Показываем и позиционируем рядом с мышкой
+            tooltip.style.display = 'block';
+            moveTooltip(e);
+        } else {
+            // Пост не найден на странице (например, на другой странице или удален)
+            tooltip.style.display = 'none';
+        }
+    }
+
+    // Функция перемещения (следует за мышью)
+    function moveTooltip(e) {
+        // Сдвигаем немного вправо и вниз, чтобы не закрывать курсор
+        const x = e.clientX + 15;
+        const y = e.clientY + 15;
+
+        // Проверка, чтобы не вылезло за экран
+        tooltip.style.left = x + 'px';
+        tooltip.style.top = y + 'px';
+    }
+
+    // Функция скрытия
+    function hideTooltip() {
+        tooltip.style.display = 'none';
     }
 </script>
 </body>
