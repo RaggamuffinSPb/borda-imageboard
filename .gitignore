@@ -33,3 +33,6 @@ build/
 .vscode/
 ### img content ###
 uploads/
+
+# Production config
+application-prod.yml

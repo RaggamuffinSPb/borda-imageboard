@@ -1,11 +1,8 @@
 spring:
   application:
     name: borda-service
-  datasource:
-    url: jdbc:postgresql://localhost:5435/borda_db
-    username: borda_user
-    password: secret
-    driver-class-name: org.postgresql.Driver
+  profiles:
+    active: dev
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
