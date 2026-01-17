@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: borda_user
       POSTGRES_PASSWORD: secret
     ports:
-      - "5432:5432"
+      - "5435:5432"
     volumes:
       - borda_data:/var/lib/postgresql/data
 
