@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    # Порт БД - внутридокерный 5432, не "железный" 5435!
+    url: jdbc:postgresql://borda-db:5432/borda_db
+    username: borda_user
+    password: secret
+
+  # JPA
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  # TODO Redis однажды
+  redis:
+    host: borda-redis
+    port: 6379

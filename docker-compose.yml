@@ -20,5 +20,22 @@ services:
       - "6379:6379"
     command: redis-server --appendonly yes
 
+  # Сервис 3: Приложение
+  borda-app:
+    build: . # собрать образ из докерфайла
+    container_name: borda_app
+    ports:
+      - "8080:8080"
+    environment:
+      # явно указать SPRING, что он в докере
+      - SPRING_PROFILES_ACTIVE=docker
+      - TZ=Europe/Moscow
+    command: [ "java", "-Duser.timezone=Europe/Moscow", "-jar", "app.jar" ] # иначе таймштампы по гринвичу летят
+    depends_on:
+      - borda-db
+      - borda-redis
+    volumes:
+      - ./uploads:/app/uploads
+
 volumes:
   borda_data:
