@@ -38,7 +38,8 @@ public class ImageboardController {
     // ГЛАВНАЯ СТРАНИЦА: Показываем только ОП-посты (Треды)
     @GetMapping
     public String index(Model model) {
-        List<Post> threads = repository.findByThreadIdIsNull();
+        //List<Post> threads = repository.findByThreadIdIsNull();
+        List<Post> threads = repository.findByThreadIdIsNullOrderByTimestampDesc();
 
         // Создаем мапу для хранения счетчиков
         Map<Post, Long> threadStats = new HashMap<>();
@@ -110,13 +111,25 @@ public class ImageboardController {
 
         repository.save(post);
 
+        // ЛОГИКА БАМПА
+        // постили - обновляем время public.posts.timestamp у "шапки" треда
         if (threadId != null) {
-            // Если мы отвечали в тред -> возвращаемся в этот же тред
+            // Находим ОП-пост
+            Post parentThread = repository.findById(threadId)
+                    .orElseThrow(() -> new RuntimeException("Тред не найден"));
+
+            // Ставим ему текущее время (как у ответа)
+            parentThread.setTimestamp(LocalDateTime.now());
+
+            // Сохраняем изменения родителя
+            repository.save(parentThread);
+
+            // Возвращаемся в тред
             return "redirect:/thread/" + threadId;
-        } else {
-            // Если мы создавали новый тред -> возвращаемся на главную
-            return "redirect:/";
         }
+
+        // Иначе (если это новый тред) - просто на главную
+        return "redirect:/";
     }
 
     // 3. Отдать картинку (Оставляем как RestController, поэтому добавим @ResponseBody)
@@ -136,4 +149,6 @@ public class ImageboardController {
             return ResponseEntity.notFound().build();
         }
     }
+
+
 }

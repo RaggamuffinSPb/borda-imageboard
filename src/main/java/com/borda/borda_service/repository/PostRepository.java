@@ -13,7 +13,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     // 1. Найти все треды (где threadId пустой)
     // Spring сам сгенерирует SQL: SELECT * FROM posts WHERE thread_id IS NULL
-    List<Post> findByThreadIdIsNull();
+    List<Post> findByThreadIdIsNull(); // deprecated, снизу метод с бампами по таймштампу
+    List<Post> findByThreadIdIsNullOrderByTimestampDesc();
 
     // 2. Найти все ответы для конкретного треда + сортировка по времени
     // SQL: SELECT * FROM posts WHERE thread_id = ? ORDER BY timestamp ASC
