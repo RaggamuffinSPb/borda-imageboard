@@ -13,7 +13,8 @@
         }
 
         .container {
-            max-width: 900px;
+            /*max-width: 900px;*/
+            max-width: 1200px;
             margin: 0 auto;
             position: relative;
             z-index: 1;
@@ -54,11 +55,12 @@
         }
 
         .post img {
-            max-width: 100%;
-            height: auto;
+            max-width: 384px;
+            max-height: 288px;
+            object-fit: contain;
             border-radius: 2px;
-            /*filter: sepia(100%) hue-rotate(50deg) saturate(300%);*/
-            /*opacity: 0.8;*/
+            cursor: pointer;
+            /*border: 0px solid #003300;*/
         }
 
         .post img:hover {
@@ -118,18 +120,54 @@
         .post-text {
             white-space: pre-wrap;
         }
+
+        /* самое важное кнопко */
+        .matrix-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #000;
+            color: #0f0;
+            border: 1px solid #0f0;
+            text-decoration: none;
+            font-family: 'Courier New', Courier, monospace;
+            text-transform: uppercase;
+            font-weight: bold;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+        .matrix-btn:hover {
+            background-color: #0f0;
+            color: #000;
+            box-shadow: 0 0 15px #0f0;
+        }
+        .file-name-display {
+            margin-left: 15px;
+            color: #0f0;
+            font-size: 0.9em;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Лента имиджборды</h1>
+    <h1>Dolbochan</h1>
 
     <!-- Форма для загрузки -->
     <form action="#" th:action="@{/}" method="post" enctype="multipart/form-data">
         <div class="form-group">
             <label>Выбери картинку (необязательно):</label>
-            <input type="file" name="file">
+            <div>
+                <!-- Скрытый реальный инпут -->
+                <input type="file" id="fileInput" name="file" style="display: none;">
+
+                <!-- Наша красивая кнопка (Label привязан к id файла) -->
+                <label for="fileInput" class="matrix-btn">[ Выбрать файл ]</label>
+
+                <!-- Сюда скрипт запишет имя выбранного файла -->
+                <span id="fileName" class="file-name-display">Файл не выбран</span>
+            </div>
         </div>
         <div class="form-group">
             <label>Текст сообщения:</label>
@@ -138,7 +176,7 @@
         <input type="hidden" name="threadId" value="">
         <input type="hidden" name="replyTo" value="">
 
-        <button type="submit">Создать тред</button>
+        <button type="submit">[ Создать тред ]</button>
     </form>
 
     <hr>
@@ -157,7 +195,75 @@
             </div>
         </a>
     </div>
+
 </div>
 
+<!-- lightbox для пикчи -->
+<div id="lightbox" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; justify-content:center; align-items:center; cursor:pointer;" onclick="this.style.display='none'">
+    <img id="lightbox-img" src="" style="max-width:95%; max-height:95%; object-fit:contain;">
+</div>
+<script>
+    // --- 1. Лайтбокс и ЗУМ ---
+
+    // Находим элементы окна просмотра один раз, чтобы не искать их постоянно
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    let currentScale = 1; // Текущий масштаб
+
+    document.querySelectorAll('.post img').forEach(img => {
+        // При клике на картинку
+        img.onclick = function(e) {
+            e.stopPropagation();
+
+            // Сбрасываем зум при открытии новой картинки
+            currentScale = 1;
+            lightboxImg.style.transform = 'scale(1)';
+
+            // Берем ссылку на картинку и ставим в окно
+            lightboxImg.src = this.src;
+
+            // Показываем окно
+            lightbox.style.display = 'flex';
+        }
+    });
+
+    // Обработка скролла колесом мыши для зума
+    lightboxImg.addEventListener('wheel', function(event) {
+        event.preventDefault(); // Останавливаем скролл страницы под лайтбоксом
+
+        if (event.deltaY < 0) {
+            // Крутим вверх -> Приближаем
+            currentScale += 0.1;
+        } else {
+            // Крутим вниз -> Отдаляем
+            currentScale -= 0.1;
+        }
+
+        // Ограничения масштаба (от 0.5x до 10x)
+        if (currentScale < 0.5) currentScale = 0.5;
+        if (currentScale > 10) currentScale = 10;
+
+        // Применяем масштаб
+        this.style.transform = `scale(${currentScale})`;
+    });
+
+
+    // --- 2. Отображение имени файла (выбор файла) ---
+
+    const fileInput = document.getElementById('fileInput');
+    const fileNameSpan = document.getElementById('fileName');
+
+    if (fileInput && fileNameSpan) {
+        fileInput.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                fileNameSpan.textContent = this.files[0].name;
+                fileNameSpan.style.color = "#fff"; // Делаем текст белым, когда файл выбран
+            } else {
+                fileNameSpan.textContent = "Файл не выбран";
+                fileNameSpan.style.color = "#0f0"; // Обычный зеленый
+            }
+        });
+    }
+</script>
 </body>
 </html>

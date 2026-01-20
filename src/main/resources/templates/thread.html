@@ -13,7 +13,8 @@
         }
 
         .container {
-            max-width: 900px;
+            /*max-width: 900px;*/
+            max-width: 1200px;
             margin: 0 auto;
             position: relative;
             z-index: 1;
@@ -30,23 +31,7 @@
             border: 1px solid #003300;
             font-family: inherit;
         }
-
-        /* Кнопка Назад */
-        .back-link {
-            display: inline-block;
-            margin-bottom: 20px;
-            text-decoration: none;
-            color: #333;
-            background-color: #e0e0e0;
-            padding: 8px 15px;
-            border-radius: 4px;
-            font-weight: bold;
-        }
-        .back-link:hover {
-            background-color: #d0d0d0;
-        }
-
-        /* Посты */
+        /* посты */
         .post {
             background-color: rgba(0, 20, 0, 0.8);
             border: 1px solid #003300;
@@ -73,11 +58,12 @@
         }
 
         .post img {
-            max-width: 100%;
-            height: auto;
+            max-width: 384px;
+            max-height: 288px;
+            object-fit: contain;
             border-radius: 2px;
-            /*filter: sepia(100%) hue-rotate(50deg) saturate(300%);*/
-            /*opacity: 0.8;*/
+            cursor: pointer;
+            /*border: 0px solid #003300;*/
         }
         .post img:hover {
             opacity: 1;
@@ -147,12 +133,32 @@
             border-color: #0f0;
             color: #0f0;
         }
+        .matrix-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            background-color: #000;
+            color: #0f0;
+            border: 1px solid #0f0;
+            text-decoration: none;
+            font-family: 'Courier New', Courier, monospace;
+            text-transform: uppercase;
+            font-weight: bold;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .matrix-btn:hover {
+            background-color: #0f0;
+            color: #000;
+            box-shadow: 0 0 15px #0f0;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <a href="/" class="back-link">← На главную</a>
+    <a href="/" class="matrix-btn">[ На главную ]</a>
 
     <!-- ОП-ПОСТ (Начало треда) -->
     <div class="post op-post">
@@ -219,8 +225,52 @@
     <div id="tooltip-content"></div>
     <img id="tooltip-image" src="" style="max-width: 100%; display: none; margin-top: 5px; filter: sepia(100%) hue-rotate(50deg);">
 </div>
+
+<!-- lightbox для пикчи -->
+<div id="lightbox" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; justify-content:center; align-items:center; cursor:pointer;" onclick="this.style.display='none'">
+    <img id="lightbox-img" src="" style="max-width:95%; max-height:95%; object-fit:contain;">
+</div>
+
 <script>
-    // --- ЛОГИКА ОТВЕТА (Было раньше) ---
+    // --- 1. Лайтбокс и ЗУМ (Теперь и тут работает зум!) ---
+
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    let currentScale = 1; // Текущий масштаб
+
+    // Вешаем обработчик на все картинки
+    document.querySelectorAll('.post img').forEach(img => {
+        img.onclick = function(e) {
+            e.stopPropagation();
+
+            // Сбрасываем зум при открытии новой картинки
+            currentScale = 1;
+            lightboxImg.style.transform = 'scale(1)';
+
+            lightboxImg.src = this.src;
+            lightbox.style.display = 'flex';
+        }
+    });
+
+    // Обработка скролла колесом мыши для зума
+    lightboxImg.addEventListener('wheel', function(event) {
+        event.preventDefault();
+
+        if (event.deltaY < 0) {
+            currentScale += 0.1; // Приближаем
+        } else {
+            currentScale -= 0.1; // Отдаляем
+        }
+
+        // Ограничения масштаба
+        if (currentScale < 0.5) currentScale = 0.5;
+        if (currentScale > 10) currentScale = 10;
+
+        this.style.transform = `scale(${currentScale})`;
+    });
+
+
+    // --- 2. Логика Ответа (Существующая функциональность) ---
     function setReply(postId) {
         const replyToInput = document.querySelector('input[name="replyTo"]');
         if (!replyToInput) {
@@ -235,23 +285,21 @@
         document.querySelector('textarea[name="content"]').focus();
     }
 
-    // --- НОВАЯ ЛОГИКА ТУЛТИПА ---
+    // --- 3. Логика Тултипа (Существующая функциональность) ---
     const tooltip = document.getElementById('post-tooltip');
     const tooltipContent = document.getElementById('tooltip-content');
     const tooltipImage = document.getElementById('tooltip-image');
 
-    // Функция показа
     function showTooltip(e, postId) {
-        // 1. Ищем элемент поста на странице по его ID
+        // Ищем элемент поста на странице по его ID
         const targetPost = document.getElementById('post-' + postId);
 
         if (targetPost) {
-            // 2. Достаем данные из атрибутов data-*
+            // Достаем данные из атрибутов data-*
             const content = targetPost.getAttribute('data-content');
             const imgSrc = targetPost.getAttribute('data-image');
 
-            // 3. Заполняем тултип
-            // Обрезаем слишком длинный текст, если нужно
+            // Заполняем тултип
             tooltipContent.textContent = content ? (content.length > 100 ? content.substring(0, 100) + '...' : content) : '';
 
             if (imgSrc) {
@@ -261,27 +309,21 @@
                 tooltipImage.style.display = 'none';
             }
 
-            // 4. Показываем и позиционируем рядом с мышкой
             tooltip.style.display = 'block';
             moveTooltip(e);
         } else {
-            // Пост не найден на странице (например, на другой странице или удален)
             tooltip.style.display = 'none';
         }
     }
 
-    // Функция перемещения (следует за мышью)
     function moveTooltip(e) {
-        // Сдвигаем немного вправо и вниз, чтобы не закрывать курсор
         const x = e.clientX + 15;
         const y = e.clientY + 15;
 
-        // Проверка, чтобы не вылезло за экран
         tooltip.style.left = x + 'px';
         tooltip.style.top = y + 'px';
     }
 
-    // Функция скрытия
     function hideTooltip() {
         tooltip.style.display = 'none';
     }
